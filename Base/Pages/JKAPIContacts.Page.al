@@ -1,7 +1,7 @@
 page 50120 "JK API External Contacts"
 {
     ApplicationArea = All;
-    Caption = 'External Contacts';
+    Caption = 'JK External Contacts';
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "JK API Contacts";
@@ -51,9 +51,10 @@ page 50120 "JK API External Contacts"
                 var
                     APIManagement: Codeunit "JK API Management";
                 begin
-                    // TODO: Llamar al codeunit o procedimiento que obtenga contactos desde la API externa
-                    APIManagement.GetExternalContactsAPI();
-                    CurrPage.Update(false);
+                    if Confirm('¿Desea consultar la API e importar los contactos?', false) then begin
+                        APIManagement.GetExternalContactsAPI();
+                        CurrPage.Update(false);
+                    end;
                 end;
             }
 

@@ -1,10 +1,5 @@
 codeunit 50120 "JK API Management"
 {
-    procedure GetExternalContacts()
-    begin
-        GetExternalContactsAPI();
-    end;
-
     procedure ClearExternalContacts()
     var
         ContactRecord: Record "JK API Contacts";
@@ -22,11 +17,19 @@ codeunit 50120 "JK API Management"
         NameText: Text;
         LastNameText: Text;
         PhoneText: Text;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeGetExternalContactsAPI(IsHandled);
+        if IsHandled then
+            exit;
+
         ResponseText := GetExternalData();
 
         if not ContactsArray.ReadFrom(ResponseText) then
             Error('The API response could not be parsed as a JSON array.');
+
+        Message('JSON response: %1', ResponseText);
 
         // ContactRecord.DeleteAll();
 
@@ -53,9 +56,7 @@ codeunit 50120 "JK API Management"
                 ContactRecord.Insert(true);
 
             end;
-
         end;
-
         Message('%1 contacts imported successfully.', ContactsArray.Count());
     end;
 
@@ -98,4 +99,10 @@ codeunit 50120 "JK API Management"
         Response.Content().ReadAs(ResponseText);
         exit(ResponseText);
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetExternalContactsAPI(var IsHandled: Boolean)
+    begin
+    end;
+
 }
