@@ -87,7 +87,9 @@ codeunit 50120 "JK API Management"
         Response: HttpResponseMessage;
         IsSuccessful: Boolean;
         ResponseText: Text;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
         IsSuccessful := Client.Get('https://raydelto.org/agenda.php', Response);
 
         if not IsSuccessful then
@@ -97,11 +99,21 @@ codeunit 50120 "JK API Management"
             Error('The API returned an error status code: %1 (%2)', Response.HttpStatusCode(), Response.ReasonPhrase());
 
         Response.Content().ReadAs(ResponseText);
+
+        OnAfterGetExternalContactsAPI(IsHandled);
+        if IsHandled then
+            exit;
+
         exit(ResponseText);
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetExternalContactsAPI(var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetExternalContactsAPI(IsHandled: Boolean)
     begin
     end;
 

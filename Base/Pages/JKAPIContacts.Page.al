@@ -35,7 +35,6 @@ page 50120 "JK API External Contacts"
             }
         }
     }
-
     actions
     {
         area(processing)
