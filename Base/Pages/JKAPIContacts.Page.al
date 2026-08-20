@@ -2,36 +2,37 @@ page 50120 "JK API External Contacts"
 {
     ApplicationArea = All;
     Caption = 'External Contacts';
-    PageType = Card;
+    PageType = List;
     UsageCategory = Lists;
     SourceTable = "JK API Contacts";
+    DeleteAllowed = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
+    Editable = false;
 
     layout
     {
         area(Content)
         {
-            group(General)
+            repeater(Group)
             {
-                Caption = 'General';
-
                 field(ID; Rec.ID)
                 {
-                    ToolTip = 'Specifies the value of the ID field.', Comment = '%';
+                    ApplicationArea = All;
                 }
                 field(Name; Rec.Name)
                 {
-                    ToolTip = 'Specifies the value of the Name field.', Comment = '%';
+                    ApplicationArea = All;
                 }
                 field(LastName; Rec.LastName)
                 {
-                    ToolTip = 'Specifies the value of the LastName field.', Comment = '%';
+                    ApplicationArea = All;
                 }
-                field(Phone; Rec.Phone)
+                field(Phone; Rec."Phone Text")
                 {
-                    ToolTip = 'Specifies the value of the Phone field.', Comment = '%';
+                    ApplicationArea = All;
                 }
             }
-
         }
     }
 
@@ -43,6 +44,7 @@ page 50120 "JK API External Contacts"
             {
                 Caption = 'Get External Contacts';
                 Image = Refresh;
+                ApplicationArea = All;
                 Promoted = true;
                 PromotedCategory = Process;
                 trigger OnAction()
@@ -50,7 +52,24 @@ page 50120 "JK API External Contacts"
                     APIManagement: Codeunit "JK API Management";
                 begin
                     // TODO: Llamar al codeunit o procedimiento que obtenga contactos desde la API externa
-                    APIManagement.GetExternalContacts();
+                    APIManagement.GetExternalContactsAPI();
+                    CurrPage.Update(false);
+                end;
+            }
+
+            action(ClearExternalContacts)
+            {
+                Caption = 'Clear External Contacts';
+                Image = Delete;
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+                trigger OnAction()
+                var
+                    APIManagement: Codeunit "JK API Management";
+                begin
+                    APIManagement.ClearExternalContacts();
+                    CurrPage.Update(false);
                 end;
             }
         }

@@ -17,6 +17,10 @@ table 50120 "JK API Contacts"
         {
             Caption = 'Phone';
         }
+        field(50124; "Phone Text"; Text[50])
+        {
+            Caption = 'Phone';
+        }
         field(50123; "ID"; Integer)
         {
             Caption = 'ID';

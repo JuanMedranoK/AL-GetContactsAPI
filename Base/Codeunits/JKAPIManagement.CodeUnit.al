@@ -1,22 +1,101 @@
 codeunit 50120 "JK API Management"
 {
     procedure GetExternalContacts()
+    begin
+        GetExternalContactsAPI();
+    end;
+
+    procedure ClearExternalContacts()
+    var
+        ContactRecord: Record "JK API Contacts";
+    begin
+        ContactRecord.DeleteAll();
+    end;
+
+    procedure GetExternalContactsAPI()
+    var
+        ResponseText: Text;
+        ContactsArray: JsonArray;
+        ContactToken: JsonToken;
+        ContactObject: JsonObject;
+        ContactRecord: Record "JK API Contacts";
+        NameText: Text;
+        LastNameText: Text;
+        PhoneText: Text;
+    begin
+        ResponseText := GetExternalData();
+
+        if not ContactsArray.ReadFrom(ResponseText) then
+            Error('The API response could not be parsed as a JSON array.');
+
+        // ContactRecord.DeleteAll();
+
+        foreach ContactToken in ContactsArray do begin
+            ContactObject := ContactToken.AsObject();
+            Clear(NameText);
+            Clear(LastNameText);
+            Clear(PhoneText);
+
+            if ContactObject.Get('nombre', ContactToken) then
+                NameText := ContactToken.AsValue().AsText();
+            if ContactObject.Get('apellido', ContactToken) then
+                LastNameText := ContactToken.AsValue().AsText();
+            if ContactObject.Get('telefono', ContactToken) then
+                PhoneText := ContactToken.AsValue().AsText();
+
+            if (NameText <> '') or (LastNameText <> '') or (PhoneText <> '') then begin
+
+                Clear(ContactRecord);
+                ContactRecord.Init();
+                ContactRecord.Name := CopyStr(NameText, 1, MaxStrLen(ContactRecord.Name));
+                ContactRecord.LastName := CopyStr(LastNameText, 1, MaxStrLen(ContactRecord.LastName));
+                ContactRecord."Phone Text" := CopyStr(PhoneText, 1, MaxStrLen(ContactRecord."Phone Text"));
+                ContactRecord.Insert(true);
+
+            end;
+
+        end;
+
+        Message('%1 contacts imported successfully.', ContactsArray.Count());
+    end;
+
+    // procedure GetAndParseJsonData()
+    // var
+    //     ResponseText: Text;
+    //     JsonObj: JsonObject;
+    //     JsonTok: JsonToken;
+    //     PostTitle: Text;
+    // begin
+    //     // Execute the GET request defined above
+    //     ResponseText := GetExternalData();
+
+    //     // Parse the raw text string into a native JSON Object
+    //     if not JsonObj.ReadFrom(ResponseText) then
+    //         Error('The response could not be parsed into a valid JSON object.');
+
+    //     // Safely extract a specific value using its property key
+    //     if JsonObj.Get('title', JsonTok) then begin
+    //         PostTitle := JsonTok.AsValue().AsText();
+    //         Message('Successfully retrieved post title: %1', PostTitle);
+    //     end;
+    // end;
+
+    local procedure GetExternalData(): Text
     var
         Client: HttpClient;
         Response: HttpResponseMessage;
-        Request: HttpRequestMessage;
-        OutString: Text;
-        ContactRecord: Record "JK API Contacts";
+        IsSuccessful: Boolean;
+        ResponseText: Text;
     begin
-        Request.SetRequestUri('https://raydelto.org/agenda.php'); // Replace with your actual API endpoint
-        Request.Method := 'GET';
-        if Client.Send(Request, Response) then
-            // Process the response
-            if response.IsSuccessStatusCode() then begin
-                response.Content().ReadAs(OutString);
-                Message('%1', response.Content.ReadAs(OutString));
-            end else
-                Error('Error in API call: %1', Response.HttpStatusCode());
+        IsSuccessful := Client.Get('https://raydelto.org/agenda.php', Response);
 
+        if not IsSuccessful then
+            Error('The HTTP call failed completely. Please check the network connectivity or URL.');
+
+        if not Response.IsSuccessStatusCode() then
+            Error('The API returned an error status code: %1 (%2)', Response.HttpStatusCode(), Response.ReasonPhrase());
+
+        Response.Content().ReadAs(ResponseText);
+        exit(ResponseText);
     end;
 }
